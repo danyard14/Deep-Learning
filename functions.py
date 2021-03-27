@@ -27,7 +27,7 @@ def soft_max_regression(X: np.array, Y: np.array, W: np.array):
     loss = 0
     right_sum = 0
     ettas_vector = get_ettas(X, W, m)
-    grads = np.zeros(m, l)   # each column j will be the grad in respect to w_j
+    grads = np.zeros((m, l))   # each column j will be the grad in respect to w_j
 
     for j in range(l):
         w_j = W[:, j]
