@@ -19,7 +19,10 @@ def soft_max_regression(X: np.array, Y: np.array, W: np.array):
     :param W: a matrix nxl where n is the dimension of x and l is the number of labels
     :return: int loss
     """
-    # TODO: add etta to calculation
+    # TODO:
+    #  1. add etta to calculation
+    #  2. add bias
+
     m = X.shape[1]
     l = W.shape[1]
 
@@ -27,7 +30,9 @@ def soft_max_regression(X: np.array, Y: np.array, W: np.array):
     loss = 0
     right_sum = 0
     ettas_vector = get_ettas(X, W, m)
-    grads = np.zeros((m, l))   # each column j will be the grad in respect to w_j
+    grads = np.zeros((m, l))   # each column j will be the grad with respect to w_j
+    # TODO: check if grads is not nxl (w has dimension nx1)
+
 
     for j in range(l):
         w_j = W[:, j]
@@ -38,7 +43,7 @@ def soft_max_regression(X: np.array, Y: np.array, W: np.array):
         c_k = np.array([1 if y == k else 0 for y in Y])
         diag_v_inv_u = divide(exp(X_t @ w_k - ettas_vector), right_sum)
         loss += c_k.T @ log(diag_v_inv_u)
-        grads[:, k] = (1/m)*X @ (diag_v_inv_u - c_k)
+        grads[:, k] = (1/m) * X @ (diag_v_inv_u - c_k)
 
     return - loss / m, grads
 
