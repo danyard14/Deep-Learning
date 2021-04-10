@@ -5,6 +5,7 @@ import h5py
 import scipy.io as sio
 import math
 
+
 def get_ettas(X, W, m, b):
     ettas = np.zeros(m)
     for j in range(m):
@@ -27,104 +28,102 @@ def normalize(v):
     return v / norm
 
 
-def grad_test_soft_max(X: np.array, Y: np.array, W: np.array, b: np.array):
-    """
-       description..
-       :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
-       :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
-       :param W: a matrix nxl where n is the dimension of x
-       :param b: a vector lx1
-       :return: int loss
-       """
-    iter_num = 20
-    diff = np.zeros(iter_num)
-    diff_grad = np.zeros(iter_num)
-    epsilons = [0.5 ** i for i in range(iter_num)]
-    n, m = X.shape
-    d = normalize(np.random.rand(n))
-    fw, grads, _ = soft_max_regression(X, Y, W, b)
-    grad = grads[:, 0]  # grad of w_0
-    for i, epsilon in enumerate(epsilons):
-        W_diff = W.copy()
-        W_diff[:, 0] += d * epsilon
-        fw_epsilon = soft_max_regression(X, Y, W_diff, b)[0]
-        diff[i] = abs(fw_epsilon - fw)
-        diff_grad[i] = abs(fw_epsilon - fw - epsilon * d.T @ grad)
-
-    plt.semilogy(np.arange(1, iter_num + 1, 1), diff)
-    plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
-    plt.xlabel('epsilons')
-    plt.ylabel('difference')
-    plt.title('weights Grad Test Results')
-    plt.legend(("diff without grad", "diff with grad"))
-    plt.show()
-
-
-def grad_test_soft_max_weights(X: np.array, Y: np.array, W: np.array, b: np.array):
-    """
-          description..
-          :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
-          :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
-          :param W: a matrix nxl where n is the dimension of x
-          :param b: a vector lx1
-          :return: int loss
-          """
-    iter_num = 20
-    diff = np.zeros(iter_num)
-    diff_grad = np.zeros(iter_num)
-    epsilons = [0.5 ** i for i in range(iter_num)]
-    n, m = X.shape
-    d = normalize(np.random.rand(W.shape))
-    fw, grads, _ = soft_max_regression(X, Y, W, b)
-    grad = grads[:, 0]  # grad of w_0
-    for i, epsilon in enumerate(epsilons):
-        W_diff = W.copy()
-        W_diff += d * epsilon
-        fw_epsilon = soft_max_regression(X, Y, W_diff, b)[0]
-        diff[i] = abs(fw_epsilon - fw)
-        diff_grad[i] = abs(fw_epsilon - fw - epsilon * d.T @ grad)
-
-    plt.semilogy(np.arange(1, iter_num + 1, 1), diff)
-    plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
-    plt.xlabel('epsilons')
-    plt.ylabel('difference')
-    plt.title('weights Grad Test Results')
-    plt.legend(("diff without grad", "diff with grad"))
-    plt.show()
+# def grad_test_soft_max(X: np.array, Y: np.array, W: np.array, b: np.array):
+#     """
+#        description..
+#        :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
+#        :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
+#        :param W: a matrix nxl where n is the dimension of x
+#        :param b: a vector lx1
+#        :return: int loss
+#        """
+#     iter_num = 20
+#     diff = np.zeros(iter_num)
+#     diff_grad = np.zeros(iter_num)
+#     epsilons = [0.5 ** i for i in range(iter_num)]
+#     n, m = X.shape
+#     d = normalize(np.random.rand(n))
+#     fw, grads, _ = soft_max_regression(X, Y, W, b)
+#     grad = grads[:, 0]  # grad of w_0
+#     for i, epsilon in enumerate(epsilons):
+#         W_diff = W.copy()
+#         W_diff[:, 0] += d * epsilon
+#         fw_epsilon = soft_max_regression(X, Y, W_diff, b)[0]
+#         diff[i] = abs(fw_epsilon - fw)
+#         diff_grad[i] = abs(fw_epsilon - fw - epsilon * d.T @ grad)
+#
+#     plt.semilogy(np.arange(1, iter_num + 1, 1), diff)
+#     plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
+#     plt.xlabel('epsilons')
+#     plt.ylabel('difference')
+#     plt.title('weights Grad Test Results')
+#     plt.legend(("diff without grad", "diff with grad"))
+#     plt.show()
 
 
-def grad_test_soft_max_bias(X: np.array, Y: np.array, W: np.array, b: np.array):
-    """
-       description..
-       :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
-       :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
-       :param W: a matrix nxl where n is the dimension of x
-       :param b: a vector lx1
-       :return: int loss
-       """
-    iter_num = 20
-    diff = np.zeros(iter_num)
-    diff_grad = np.zeros(iter_num)
-    epsilons = [0.5 ** i for i in range(iter_num)]
-    n, m = X.shape
-    l = len(b)
-    d = normalize(np.random.rand(l))
-    fw, _, grad_b = soft_max_regression(X, Y, W, b)
-    for i, epsilon in enumerate(epsilons):
-        b_diff = b.copy()
-        b_diff += d * epsilon
-        fw_epsilon = soft_max_regression(X, Y, W, b_diff)[0]
-        diff[i] = abs(fw_epsilon - fw)
-        diff_grad[i] = abs(fw_epsilon - fw - epsilon * d.T @ grad_b)
+# def grad_test_soft_max_weights(X: np.array, Y: np.array, W: np.array, b: np.array):
+#     """
+#           description..
+#           :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
+#           :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
+#           :param W: a matrix nxl where n is the dimension of x
+#           :param b: a vector lx1
+#           :return: int loss
+#           """
+#     iter_num = 20
+#     diff = np.zeros(iter_num)
+#     diff_grad = np.zeros(iter_num)
+#     epsilons = [0.5 ** i for i in range(iter_num)]
+#     n, m = X.shape
+#     d = normalize(np.random.rand(W.shape))
+#     fw, grads, _ = soft_max_regression(X, Y, W, b)
+#     grad = grads[:, 0]  # grad of w_0
+#     for i, epsilon in enumerate(epsilons):
+#         W_diff = W.copy()
+#         W_diff += d * epsilon
+#         fw_epsilon = soft_max_regression(X, Y, W_diff, b)[0]
+#         diff[i] = abs(fw_epsilon - fw)
+#         diff_grad[i] = abs(fw_epsilon - fw - epsilon * d.T @ grad)
+#
+#     plt.semilogy(np.arange(1, iter_num + 1, 1), diff)
+#     plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
+#     plt.xlabel('epsilons')
+#     plt.ylabel('difference')
+#     plt.title('weights Grad Test Results')
+#     plt.legend(("diff without grad", "diff with grad"))
+#     plt.show()
 
-    plt.semilogy(np.arange(1, iter_num + 1, 1), diff)
-    plt.xlabel('epsilons')
-    plt.ylabel('difference')
-    plt.title('bias Grad Test Results')
-    plt.legend(("diff without grad", "diff with grad"))
-    plt.show()
 
-
+# def grad_test_soft_max_bias(X: np.array, Y: np.array, W: np.array, b: np.array):
+#     """
+#        description..
+#        :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
+#        :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
+#        :param W: a matrix nxl where n is the dimension of x
+#        :param b: a vector lx1
+#        :return: int loss
+#        """
+#     iter_num = 20
+#     diff = np.zeros(iter_num)
+#     diff_grad = np.zeros(iter_num)
+#     epsilons = [0.5 ** i for i in range(iter_num)]
+#     n, m = X.shape
+#     l = len(b)
+#     d = normalize(np.random.rand(l))
+#     fw, _, grad_b = soft_max_regression(X, Y, W, b)
+#     for i, epsilon in enumerate(epsilons):
+#         b_diff = b.copy()
+#         b_diff += d * epsilon
+#         fw_epsilon = soft_max_regression(X, Y, W, b_diff)[0]
+#         diff[i] = abs(fw_epsilon - fw)
+#         diff_grad[i] = abs(fw_epsilon - fw - epsilon * d.T @ grad_b)
+#
+#     plt.semilogy(np.arange(1, iter_num + 1, 1), diff)
+#     plt.xlabel('epsilons')
+#     plt.ylabel('difference')
+#     plt.title('bias Grad Test Results')
+#     plt.legend(("diff without grad", "diff with grad"))
+#     plt.show()
 
 
 def soft_max_regression(X: np.array, Y: np.array, W: np.array, b: np.array):
@@ -137,15 +136,19 @@ def soft_max_regression(X: np.array, Y: np.array, W: np.array, b: np.array):
     :return: int loss
     """
     # TODO:
+    n = X.shape[0]
+    if len(X.shape) > 1:
+        m = X.shape[1]
+    else:
+        m = 1
 
-    n, m = X.shape
     l = W.shape[1]
 
     X_t = X.T
     loss = 0
     right_sum = 0
-    # ettas_vector = get_ettas(X, W, m, b)
-    ettas_vector = np.zeros(m)
+    ettas_vector = get_ettas(X, W, m, b)
+    # ettas_vector = np.zeros(m)
     W_grads = np.zeros((n, l))  # each column j will be the grad with respect to w_j
     b_grad = np.zeros(l)
 
@@ -185,6 +188,7 @@ def lr_step_decay(epoch, init_lr):
     new_lr = init_lr * math.pow(reduce_ratio, math.floor((1 + epoch) / decay_steps))
     return new_lr
 
+
 def update_lr(curr_epoch, init_lr):
     """
     Update learning rate based on the selected scheduling method.
@@ -218,7 +222,6 @@ def SGD(X, Y, W, b, lr=0.001, epchos=100, batch_size=128):
 
         ## validate
 
-
         print(f"epcoch = {i}, loss = {loss}, accuracy = {accuracy[i]} grad = {grad}")
 
     plt.plot(np.arange(0, epchos, 1), accuracy)
@@ -237,6 +240,7 @@ def SGD(X, Y, W, b, lr=0.001, epchos=100, batch_size=128):
 
     return losses, W
 
+
 def SGD2(X, Y, W, b, lr=1e-3, lr2=1e-3, epchos=100, batch_size=32, momentum=0.9):
     init_lr = lr
     n = X.shape[0]
@@ -245,7 +249,7 @@ def SGD2(X, Y, W, b, lr=1e-3, lr2=1e-3, epchos=100, batch_size=32, momentum=0.9)
     losses = np.zeros(epchos)
     accuracy = np.zeros(epchos)
     prev_velocity_w = np.zeros(W.shape)
-    prev_velocity_b= np.zeros(b.shape)
+    prev_velocity_b = np.zeros(b.shape)
 
     for epoch in range(epchos):
         #     if i % 25 == 0:
@@ -310,13 +314,37 @@ def test_SGD(X, Y):
             SGD2(X, Y, W, b)
 
 
+class ReLU:
+    @staticmethod
+    def activate(x):
+        return np.maximum(0, x)
+
+    @staticmethod
+    def deriviative(x):
+        f = lambda x: 1 if x >= 0 else 0
+        vfunc = np.vectorize(f)
+
+        return vfunc(x)
+
+
+class tanh:
+    @staticmethod
+    def activate(x):
+        return np.tanh(x)  # TODO: check if should right whole expression
+
+    @staticmethod
+    def deriviative(x):
+        f = lambda X: 1 - np.tanh(X) ** 2
+        return f(x)
+
+
 if __name__ == '__main__':
     # data = sio.loadmat('SwissRollData.mat')
-    data = sio.loadmat('PeaksData.mat')
+    data = sio.loadmat('data/PeaksData.mat')
     # data = sio.loadmat('GMMData.mat')
     Y_train = data["Ct"]
     Y_validation = data["Cv"]
     X_train = data["Yt"]
     X_validation = data["Yv"]
-    #run_grad_test_soft_max()
+    # run_grad_test_soft_max()
     test_SGD(X_train, Y_train)
