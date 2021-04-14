@@ -79,37 +79,16 @@ class SoftMaxLayer(Layer):
         scores = exp(net_out - ettas_vector)
         right_sum = np.sum(scores, axis=0)
 
-        div = divide(scores, right_sum)
-        loss = np.sum(Y * np.log(div))
+        # propabilities = divide(scores, right_sum)
+        propabilities = scores / right_sum
+        loss = np.sum(Y * np.log(propabilities))
 
         if self.train:
-            self.dW = (1/m) * (self.X @ (div - Y).T).T
-            self.db = (1/m) * np.sum((div - Y), axis=1).reshape(-1, 1)
-            self.dX = (1/m) * W @ (div - Y)
+            self.dW = (1/m) * (self.X @ (propabilities - Y).T).T
+            self.db = (1/m) * np.sum((propabilities - Y), axis=1).reshape(-1, 1)
+            self.dX = (1/m) * (W @ (propabilities - Y))
 
         return -loss / m
 
-    @staticmethod
-    def softmax(outputLayer):
-        # finding the maximum
-        outputLayer -= np.max(outputLayer)
-        # calculate softmax
-        result = (np.exp(outputLayer).T / np.sum(np.exp(outputLayer), axis=1)).T
-        return result
-
-    def softmaxRegression(self, x_L, y_mat):
-        # active softmax
-        theta_L = self.W
-        b_L = self.b
-
-        scores = np.dot(np.transpose(x_L), theta_L.T) + b_L.T
-        probs = self.softmax(scores)
-        m = x_L.shape[1]
-
-        cost = (-1 / m) * (np.sum(y_mat.T * np.log(probs)))
-        grad_theta = (-1 / m) * (x_L @ (y_mat.T - probs))
-        grad_b = -(1 / m) * np.sum(y_mat.T - probs, axis=0).reshape(-1,1)
-
-        return cost, grad_theta, grad_b, probs
 
 
