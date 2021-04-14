@@ -55,4 +55,4 @@ def train_network(data_path: str, num_layers: int = 8, batch_size: int = 32, lr:
 
 
 if __name__ == '__main__':
-
+    train_network("data/PeaksData.mat", num_layers=5, batch_size=100, epochs=250)

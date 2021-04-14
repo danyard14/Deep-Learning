@@ -9,16 +9,13 @@ def normalize(v):
     return v / norm
 
 
-def get_grad_Jac_test_params():
+def get_grad_Jac_test_params(batch_size=1):
     data = sio.loadmat('..\\data\\PeaksData.mat')
     X_train = data["Yt"]
     Y_train = data["Ct"]
-    x = data["Yt"][:, 0:128].reshape(-1,1)  # take a single x
-    y = data["Ct"][:, 0:128].reshape(-1,1)
+    x = data["Yt"][:, 0: batch_size]  # take a single x
+    y = data["Ct"][:, 0: batch_size]
     n = x.shape[0]
-    num_of_classes = y.shape[0]
-    W = np.random.random((n, num_of_classes))
-    b = np.random.random(num_of_classes)
 
     return x, y
 

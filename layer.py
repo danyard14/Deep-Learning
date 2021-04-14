@@ -26,19 +26,18 @@ class Layer:
     def forward(self, X):
         self.X = X
         out = self.activation(self.W @ X + self.b)
-
         return out
 
     def backward(self, V):
         temp = np.multiply(self.activation_deriviative(self.W @ self.X + self.b), V)
         self.dX = self.W.T @ temp
         self.dW = temp @ self.X.T
-        self.db = temp
+        self.db = np.sum(temp, axis=1).reshape(-1, 1)
 
-    def train(self):
+    def train_mode(self):
         self.train = True
 
-    def eval(self):
+    def eval_mode(self):
         self.train = False
 
 
@@ -46,6 +45,12 @@ class SoftMaxLayer(Layer):
     def __init__(self, in_dimensions, num_of_classes):
         super(SoftMaxLayer, self).__init__(in_dimensions, num_of_classes)
         self.activation = lambda X: X
+
+    def forward(self, X):
+        self.X = X
+        out = self.activation(self.W @ X + self.b)
+
+        return out
 
     def backward(self, V=None):
         pass

@@ -20,6 +20,7 @@ class NeuralNetwork:
         out = X
         for layer in self.layers:
             out = layer.forward(out)
+        return out
 
     def backward_pass(self):
         prev_dx = None
@@ -29,11 +30,11 @@ class NeuralNetwork:
 
     def train_mode(self):
         for layer in self.layers:
-            layer.train()
+            layer.train_mode()
 
     def eval_mode(self):
         for layer in self.layers:
-            layer.eval()
+            layer.eval_mode()
 
 if __name__ == '__main__':
      pass

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from functions import soft_max_regression
 from layer import *
-from utils import *
+from tests.utils import *
 
 
 def grad_test_soft_max(X: np.array, Y: np.array, W: np.array, b: np.array):
@@ -113,13 +113,13 @@ def jacobian_test_layer_b(X, layer: Layer):
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
     epsilons = [0.5 ** i for i in range(iter_num)]
-    d = normalize(np.random.rand(out_dimensions))
+    d = normalize(np.random.rand(*layer.b.shape))
     fb = np.dot(layer.forward(X).T, U).item()
-    _, _, JacTu_b = layer.backward(U)
-
+    layer.backward(U)
+    JacTu_b = layer.db
     for i, epsilon in enumerate(epsilons):
         b_diff = original_b.copy()
-        b_diff[:, 0] += d * epsilon
+        b_diff += d * epsilon
         layer.b = b_diff
         fb_epsilon = np.dot(layer.forward(X).T, U).item()
         diff[i] = abs(fb_epsilon - fb)

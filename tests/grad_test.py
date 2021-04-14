@@ -88,25 +88,14 @@ def grad_test_soft_max_all_W_layer(X: np.array, Y: np.array):
     plt.legend(("diff without grad", "diff with grad"))
     plt.show()
 
+
 def grad_test_soft_max_all_X_layer(X: np.array, Y: np.array):
-    """
-      description..
-      :param X: a matrix of nxm where n is the dimension of x and m is the number of examples x
-      :param Y: a vector of size 1xm, where Y[i] is in [1,...,l]
-      :param W: a matrix nxl where n is the dimension of x
-      :param b: a vector lx1
-      :return: int loss
-      """
     iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
     epsilons = [0.5 ** i for i in range(iter_num)]
     n = X.shape[0]
     l = Y.shape[0]
-    if len(X.shape) > 1:
-        m = X.shape[1]
-    else:
-        m = 1
     soft_max_layer = SoftMaxLayer(n, l)
     d = normalize(np.random.rand(*X.shape))
     out = soft_max_layer.forward(X)
@@ -126,9 +115,10 @@ def grad_test_soft_max_all_X_layer(X: np.array, Y: np.array):
     plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
     plt.xlabel('epsilons')
     plt.ylabel('difference')
-    plt.title('weights Grad Test Results')
+    plt.title('X Grad Test Results')
     plt.legend(("diff without grad", "diff with grad"))
     plt.show()
+
 
 def grad_test_soft_max_bias(X: np.array, Y: np.array, W: np.array, b: np.array):
     """
@@ -172,4 +162,4 @@ if __name__ == '__main__':
     X_train = data["Yt"]
     X_validation = data["Yv"]
     # run_grad_test_soft_max()
-    grad_test_soft_max_all_X_layer(*get_grad_Jac_test_params())
+    grad_test_soft_max_all_X_layer(*get_grad_Jac_test_params(batch_size=128))
