@@ -43,10 +43,10 @@ class Layer:
 
 class SoftMaxLayer(Layer):
     def __init__(self, in_dimensions, num_of_classes):
-        super(Layer, self).__init__(in_dimensions, num_of_classes)
-        self.activation = np.identity
+        super(SoftMaxLayer, self).__init__(in_dimensions, num_of_classes)
+        self.activation = lambda X: X
 
-    def backward(self, V):
+    def backward(self, V=None):
         return self.dW, self.db
 
     def soft_max(self, net_out, Y):
@@ -64,14 +64,14 @@ class SoftMaxLayer(Layer):
         else:
             m = 1
 
-        l = self.W.shape[1]
+        l = self.W.shape[0]
 
         X_t = self.X.T
         loss = 0
-        ettas_vector = get_ettas(self.X, self.W, m, self.b)
+        ettas_vector = get_ettas(self.X, W, m, self.b)
         # ettas_vector = np.zeros(m)
-        self.dW = np.zeros((n, l))  # each column j will be the grad with respect to w_j
-        self.db = np.zeros(l)
+        self.dW = np.zeros((l, n))  # each column j will be the grad with respect to w_j
+        self.db = np.zeros((l, 1))
 
         # TODO: delete first right_sum after testing
         probabilities = exp(net_out - ettas_vector)
@@ -91,7 +91,7 @@ class SoftMaxLayer(Layer):
 
             # TODO: maybe add flag if this is train
 
-            self.dW[:, k] = (1 / m) * self.X @ (diag_v_inv_u - c_k)
+            self.dW[k, :] = (1 / m) * self.X @ (diag_v_inv_u - c_k)
             self.db[k] = (1 / m) * np.sum((diag_v_inv_u - c_k))
 
         # TODO: check if we can transform the upper calculation of loss to matrix form
@@ -101,3 +101,28 @@ class SoftMaxLayer(Layer):
         self.dX = (1 / m) * W @ ((np.divide(probabilities, right_sum)) - Y)
 
         return - loss / m
+
+    @staticmethod
+    def softmax(outputLayer):
+        # finding the maximum
+        outputLayer -= np.max(outputLayer)
+        # calculate softmax
+        result = (np.exp(outputLayer).T / np.sum(np.exp(outputLayer), axis=1)).T
+        return result
+
+    def softmaxRegression(self, x_L, y_mat):
+        # active softmax
+        theta_L = self.W
+        b_L = self.b
+
+        scores = np.dot(np.transpose(x_L), theta_L.T) + b_L.T
+        probs = self.softmax(scores)
+        m = x_L.shape[1]
+
+        cost = (-1 / m) * (np.sum(y_mat.T * np.log(probs)))
+        grad_theta = (-1 / m) * (x_L @ (y_mat.T - probs))
+        grad_b = -(1 / m) * np.sum(y_mat.T - probs, axis=0).reshape(-1,1)
+
+        return cost, grad_theta, grad_b, probs
+
+

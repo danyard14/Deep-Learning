@@ -168,9 +168,15 @@ def soft_max_regression(X: np.array, Y: np.array, W: np.array, b: np.array):
     return - loss / m, W_grads, b_grad
 
 
-def get_acc(X, Y, W, b):
-    XW = X.T @ W + b
-    preds = np.argmax(XW, axis=1)
+# def get_acc(X, Y, W, b):
+#     XW = X.T @ W + b
+#     preds = np.argmax(XW, axis=1)
+#     true_labels = np.argmax(Y, axis=0)
+#     acc = sum(preds == true_labels)
+#     return acc / Y.shape[1]
+
+def get_acc(out, Y):
+    preds = np.argmax(out, axis=0)
     true_labels = np.argmax(Y, axis=0)
     acc = sum(preds == true_labels)
     return acc / Y.shape[1]
