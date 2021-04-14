@@ -1,9 +1,5 @@
 import numpy as np
 from numpy import log, exp, divide
-import matplotlib.pyplot as plt
-import h5py
-import scipy.io as sio
-import math
 
 
 def get_ettas(X, W, m, b):
@@ -25,6 +21,7 @@ class Layer:
         self.dX = None
         self.dW = None
         self.db = None
+        self.train = True
 
     def forward(self, X):
         self.X = X
@@ -38,7 +35,11 @@ class Layer:
         self.dW = temp @ self.X.T
         self.db = temp
 
-        return self.dX, self.dW, self.db
+    def train(self):
+        self.train = True
+
+    def eval(self):
+        self.train = False
 
 
 class SoftMaxLayer(Layer):
@@ -47,7 +48,7 @@ class SoftMaxLayer(Layer):
         self.activation = lambda X: X
 
     def backward(self, V=None):
-        return self.dW, self.db
+        pass
 
     def soft_max(self, net_out, Y):
         """
@@ -66,41 +67,22 @@ class SoftMaxLayer(Layer):
 
         l = self.W.shape[0]
 
-        X_t = self.X.T
-        loss = 0
         ettas_vector = get_ettas(self.X, W, m, self.b)
-        # ettas_vector = np.zeros(m)
         self.dW = np.zeros((l, n))  # each column j will be the grad with respect to w_j
         self.db = np.zeros((l, 1))
 
-        # TODO: delete first right_sum after testing
-        probabilities = exp(net_out - ettas_vector)
-        right_sum = np.sum(probabilities, axis=0)
+        scores = exp(net_out - ettas_vector)
+        right_sum = np.sum(scores, axis=0)
 
-        # right_sum2 = np.zeros(m)
-        # for j in range(l):
-        #     w_j = W[:, j]
-        #     right_sum2 += exp(X_t @ w_j + self.b[j] - ettas_vector)
-        # print(right_sum2 - right_sum)
-        # print(np.equal(right_sum2,right_sum))
+        div = divide(scores, right_sum)
+        loss = np.sum(Y * np.log(div))
 
-        for k in range(l):
-            c_k = Y[k, :]
-            diag_v_inv_u = divide(probabilities[k, :], right_sum)
-            loss += c_k.T @ log(diag_v_inv_u)
+        if self.train:
+            self.dW = (1/m) * (self.X @ (div - Y).T).T
+            self.db = (1/m) * np.sum((div - Y), axis=1).reshape(-1, 1)
+            self.dX = (1/m) * W @ (div - Y)
 
-            # TODO: maybe add flag if this is train
-
-            self.dW[k, :] = (1 / m) * self.X @ (diag_v_inv_u - c_k)
-            self.db[k] = (1 / m) * np.sum((diag_v_inv_u - c_k))
-
-        # TODO: check if we can transform the upper calculation of loss to matrix form
-        # diag_v_inv_u = divide(probabilities, right_sum)    #  size lxm
-        # loss = Y.T @ log(diag_v_inv_u)
-
-        self.dX = (1 / m) * W @ ((np.divide(probabilities, right_sum)) - Y)
-
-        return - loss / m
+        return -loss / m
 
     @staticmethod
     def softmax(outputLayer):
