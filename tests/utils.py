@@ -16,10 +16,11 @@ def get_grad_Jac_test_params(batch_size=4):
     m = X_train.shape[1]
     perm_indices = np.random.permutation(m)
     chosen_indices = perm_indices[0:batch_size]
-    X = data["Yt"][:, chosen_indices]  # take a single x
+    X = normalize(abs((data["Yt"][:, chosen_indices])))# take a single x
     Y = data["Ct"][:, chosen_indices]
+    X2 = normalize(np.random.rand(*X.shape))
 
-    return X, Y
+    return X2, Y
 
 
 if __name__ == '__main__':

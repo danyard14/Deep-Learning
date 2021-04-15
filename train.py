@@ -5,14 +5,14 @@ from network import *
 from optimizers import *
 
 
-def train_network(data_path: str, num_layers: int = 8, batch_size: int = 32, lr: int = 0.001, epochs: int = 2):
+def train_network(data_path: str, num_layers= 8, batch_size: int = 32, lr: int = 0.001, epochs: int = 2):
     data = sio.loadmat(data_path)
     X_train = data["Yt"]
     Y_train = data["Ct"]
     input_size = X_train.shape[0]
     m = X_train.shape[1]
     num_of_classes = Y_train.shape[0]
-    net = NeuralNetwork(input_size, num_layers, num_of_classes)
+    net = NeuralNetwork(input_size, num_layers, num_of_classes,policy='else')
 
     optimizer = SGD(net, lr)
 
@@ -55,4 +55,4 @@ def train_network(data_path: str, num_layers: int = 8, batch_size: int = 32, lr:
 
 
 if __name__ == '__main__':
-    train_network("data/PeaksData.mat", num_layers=5, batch_size=100, epochs=250)
+    train_network("data/PeaksData.mat", num_layers=7, batch_size=100, epochs=250)

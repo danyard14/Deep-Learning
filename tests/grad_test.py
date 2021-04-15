@@ -133,6 +133,6 @@ if __name__ == '__main__':
     X_validation = data["Yv"]
     # run_grad_test_soft_max()
     grad_test_soft_max_all_X_layer(*get_grad_Jac_test_params())
-    grad_test_soft_max_all_W_layer(*get_grad_Jac_test_params())
-    grad_test_soft_max_bias(*get_grad_Jac_test_params())
+    #grad_test_soft_max_all_W_layer(*get_grad_Jac_test_params())
+    #grad_test_soft_max_bias(*get_grad_Jac_test_params())
 
