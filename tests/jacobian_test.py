@@ -1,9 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from functions import soft_max_regression
 from layer import *
-from utils import *
-
+from test_utils import *
 
 
 def jacobian_test_layer_X(X):
@@ -12,12 +9,10 @@ def jacobian_test_layer_X(X):
     out_dimensions = layer.b.shape[0]
     U = normalize(np.random.rand(out_dimensions, m))
 
-    ###################
     iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
     epsilons = [0.5 ** i for i in range(iter_num)]
-    #d = normalize(np.random.rand(n))
     d = normalize(np.random.rand(*X.shape))
 
     fx = np.dot(layer.forward(X).T, U).item()
@@ -28,8 +23,8 @@ def jacobian_test_layer_X(X):
         X_diff = X.copy()
         X_diff += d * epsilon
         fx_epsilon = np.dot(layer.forward(X_diff).T, U).item()
-        d_flat = d.reshape(-1,1)
-        JacTu_X_flat = JacTu_X.reshape(-1,1)
+        d_flat = d.reshape(-1, 1)
+        JacTu_X_flat = JacTu_X.reshape(-1, 1)
 
         diff[i] = abs(fx_epsilon - fx)
         diff_grad[i] = abs(fx_epsilon - fx - epsilon * d_flat.T @ JacTu_X_flat)
@@ -38,7 +33,7 @@ def jacobian_test_layer_X(X):
     plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
     plt.xlabel('epsilons')
     plt.ylabel('difference')
-    plt.title('X Grad Test Results')
+    plt.title('X Jacobian Test Results')
     plt.legend(("diff without grad", "diff with grad"))
     plt.show()
 
@@ -50,7 +45,6 @@ def jacobian_test_layer_W(X):
     U = normalize(np.random.rand(out_dimensions, m))
     original_W = layer.W.copy()
 
-    ###################
     iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
@@ -74,7 +68,7 @@ def jacobian_test_layer_W(X):
     plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
     plt.xlabel('epsilons')
     plt.ylabel('difference')
-    plt.title('weights Grad Test Results')
+    plt.title('weights Jacobian Test Results')
     plt.legend(("diff without grad", "diff with grad"))
     plt.show()
 
@@ -86,7 +80,6 @@ def jacobian_test_layer_b(X):
     U = normalize(np.random.rand(out_dimensions, m))
     original_b = layer.b.copy()
 
-    ###################
     iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
@@ -107,7 +100,7 @@ def jacobian_test_layer_b(X):
     plt.semilogy(np.arange(1, iter_num + 1, 1), diff_grad)
     plt.xlabel('epsilons')
     plt.ylabel('difference')
-    plt.title('bias Grad Test Results')
+    plt.title('bias Jacobian Test Results')
     plt.legend(("diff without grad", "diff with grad"))
     plt.show()
 
@@ -118,7 +111,3 @@ if __name__ == '__main__':
     jacobian_test_layer_X(x)
     jacobian_test_layer_W(x)
     jacobian_test_layer_b(x)
-
-
-
-
