@@ -1,3 +1,4 @@
+import math
 import scipy.io as sio
 import matplotlib.pyplot as plt
 from network import *
@@ -5,8 +6,7 @@ from optimizers import *
 from utils import get_acc
 
 
-def train_network(data_path: str, num_layers=1, batch_size: int = 32, lr: int = 0.001, epochs: int = 3,
-                  policy="increase"):
+def train_network(data_path: str, num_layers=1, batch_size: int = 32, lr: int = 0.001, epochs: int = 100, policy="increase", layers_arr=[]):
     data = sio.loadmat(data_path)
     X_train = data["Yt"]
     Y_train = data["Ct"]
@@ -48,17 +48,22 @@ def train_network(data_path: str, num_layers=1, batch_size: int = 32, lr: int = 
               f" train_accuracy = {training_accuracy[epoch]}")
 
     axis1.plot(np.arange(0, epochs, 1), training_accuracy)
-    axis1.plot(np.arange(0, epochs, 1), validation_accuracy)
     axis1.set_xlabel("epochs")
     axis1.set_ylabel("score")
-    axis1.legend(("training accuracy", "validation accuracy"))
-    axis1.set_title(f"accuracy : batchsize = {batch_size} lr = {lr}")
+    axis1.legend(layers_arr)
+    axis1.set_title(f"training accuracy : batchsize = {batch_size} lr = {lr}")
 
-    axis2.plot(np.arange(0, epochs, 1), losses)
+    axis2.plot(np.arange(0, epochs, 1), validation_accuracy)
     axis2.set_xlabel("epochs")
     axis2.set_ylabel("score")
-    axis2.legend("loss")
-    axis2.set_title(f"loss: batchsize = {batch_size} lr = {lr}")
+    axis2.legend(layers_arr)
+    axis2.set_title(f"validation accuracy : batchsize = {batch_size} lr = {lr}")
+
+    axis3.plot(np.arange(0, epochs, 1), losses)
+    axis3.set_xlabel("epochs")
+    axis3.set_ylabel("score")
+    axis3.legend(layers_arr)
+    axis3.set_title(f"loss: batchsize = {batch_size} lr = {lr}")
     print(f"for batch size = {batch_size} and lr = {lr} we got loss = {best_loss},"
           f" valid_acc = {best_valid_acc} and train acc = {best_train_acc}")
 
@@ -78,10 +83,11 @@ if __name__ == '__main__':
     # lrs = [0.001, 0.05]
     # batch_sizes = [32, 64]
     policies = ["increase"]
-    num_of_layers = [4, 8, 12, 16]
+    num_of_layers = [1, 3, 5, 8, 10, 12, 16]
     _, axis1 = plt.subplots(1, 1)
     _, axis2 = plt.subplots(1, 1)
+    _, axis3 = plt.subplots(1, 1)
     for policy in policies:
         for l in num_of_layers:
-            train_network(Peaks, num_layers=l, policy=policy)
+            train_network(GMM, num_layers=l, policy=policy, layers_arr=num_of_layers, epochs=100)
     plt.show()

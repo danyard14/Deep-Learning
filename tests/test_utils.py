@@ -2,8 +2,9 @@ import numpy as np
 import scipy.io as sio
 from utils import normalize
 
+
 def get_grad_Jac_test_params(batch_size=4):
-    data = sio.loadmat('..\\data\\PeaksData.mat')
+    data = sio.loadmat('../data/PeaksData.mat')
     X_train = data["Yt"]
     Y_train = data["Ct"]
     m = X_train.shape[1]

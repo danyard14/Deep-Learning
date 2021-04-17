@@ -1,13 +1,11 @@
 import numpy as np
-from numpy import log, exp, divide
-from functions import ReLU, tanh
-from utils import normalize
-import math
+from numpy import exp
+from functions import ReLU
+
 
 class Layer:
     def __init__(self, in_dimensions, out_dimensions, activation=ReLU):
         """
-
         :param in_dimensions: dimensions of input
         :param out_dimensions: dimensions of output
         :param activation: activation function used by the layer
@@ -24,11 +22,20 @@ class Layer:
         self.train = True
 
     def forward(self, X):
+        """
+        Forward the evaluated value of the layer
+        :param X: a matrix of size nxm
+        :return an output matrix, after activation on WX+b matrix
+        """
         self.X = X.copy()
         out = self.activation(self.W @ X + self.b)
         return out
 
     def backward(self, V):
+        """
+        Update derivative of X, W, b
+        :param V: a matrix of size nxm, output of forward layer
+        """
         temp = self.activation_derivative(self.W @ self.X + self.b) * V
         self.dX = self.W.T @ temp
         self.dW = temp @ self.X.T
@@ -43,10 +50,19 @@ class Layer:
 
 class SoftMaxLayer(Layer):
     def __init__(self, in_dimensions, num_of_classes):
+        """
+        :param in_dimensions: dimensions of input
+        :param out_dimensions: dimensions of output
+        """
         super(SoftMaxLayer, self).__init__(in_dimensions, num_of_classes)
-        self.activation = lambda X: X
+        self.activation = lambda x: x
 
     def forward(self, X):
+        """
+        Forward the evaluated value of the layer
+        :param X: a matrix of size nxm
+        :return an output matrix, after activation on WX+b matrix - the prediction of the NN
+        """
         self.X = X.copy()
         out = self.activation(self.W @ X + self.b)
 
@@ -57,11 +73,9 @@ class SoftMaxLayer(Layer):
 
     def soft_max(self, net_out, Y):
         """
-        description..
         :param net_out: a matrix of size nxm, output of  forward layer
-        :param Y: a matrix of size lxm,
-         where Y[i,:] is c_i (indicator vector for label i)
-        :return: loss score, and probabilities matrix for each class,x
+        :param Y: a matrix of size lxm, where Y[i,:] is c_i (indicator vector for label i)
+        :return: loss score and probabilities matrix for each class
         """
         W = self.W.T
         n = self.X.shape[0]
@@ -73,7 +87,7 @@ class SoftMaxLayer(Layer):
         self.dW = np.zeros((l, n))
         self.db = np.zeros((l, 1))
 
-        ettas_vector = get_ettas(self.X, W, m, self.b)
+        ettas_vector = get_ettas(self.X, W, self.b, m)
         scores = exp(net_out - ettas_vector)
         right_sum = np.sum(scores, axis=0)
         probabilities = scores / right_sum
@@ -87,7 +101,16 @@ class SoftMaxLayer(Layer):
 
         return -loss / m, probabilities
 
-def get_ettas(X, W, m, b):
+
+def get_ettas(X, W, b, m):
+    """
+    Find the max value of each column of XW+b for ignoring numerical issues
+    :param X: a matrix of size nxm, input of  forwarded layer
+    :param W: a matrix of size lxm, weights matrix
+    :param b: a vector of 1xl, the bias vector
+    :param m: number of instances in X matrix
+    :return: a vector of 1xl, the max value of each column
+    """
     ettas = np.zeros(m)
     for j in range(m):
         x_j = X[:, j]

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class ReLU:
     @staticmethod
     def activate(x):
@@ -12,10 +13,11 @@ class ReLU:
 
         return vfunc(x)
 
+
 class tanh:
     @staticmethod
     def activate(x):
-        return np.tanh(x)  # TODO: check if should right whole expression
+        return np.tanh(x)
 
     @staticmethod
     def deriviative(x):

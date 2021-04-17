@@ -1,15 +1,21 @@
 import matplotlib.pyplot as plt
+import functions
 from layer import *
 from test_utils import *
 
 
-def jacobian_test_layer_X(X):
-    layer = Layer(2, 3)
+def jacobian_test_layer_X(X, iter_num=20):
+    """
+    Jacobian test for X parameter
+    :param X: a matrix of size nxm, output of forward layer
+    :param iter_num: a number of iterations for the gradient test
+    :return: void
+    """
+    layer = Layer(2, 3, activation=functions.tanh)
     n, m = X.shape
     out_dimensions = layer.b.shape[0]
     U = normalize(np.random.rand(out_dimensions, m))
 
-    iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
     epsilons = [0.5 ** i for i in range(iter_num)]
@@ -34,18 +40,23 @@ def jacobian_test_layer_X(X):
     plt.xlabel('epsilons')
     plt.ylabel('difference')
     plt.title('X Jacobian Test Results')
-    plt.legend(("diff without grad", "diff with grad"))
+    plt.legend((f'|\N{LATIN SMALL LETTER F WITH HOOK}(x + εd) - \N{LATIN SMALL LETTER F WITH HOOK}(x)|', "|\N{LATIN SMALL LETTER F WITH HOOK}(x + εd) - \N{LATIN SMALL LETTER F WITH HOOK}(x) - εdᵀ∇f|"))
     plt.show()
 
 
-def jacobian_test_layer_W(X):
-    layer = Layer(2, 3)
+def jacobian_test_layer_W(X, iter_num=20):
+    """
+    Jacobian test for weights parameter
+    :param X: a matrix of size nxm, output of forward layer
+    :param iter_num: a number of iterations for the gradient test
+    :return: void
+    """
+    layer = Layer(2, 3, activation=functions.tanh)
     n, m = X.shape
     out_dimensions = layer.b.shape[0]
     U = normalize(np.random.rand(out_dimensions, m))
     original_W = layer.W.copy()
 
-    iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
     epsilons = [0.5 ** i for i in range(iter_num)]
@@ -69,18 +80,23 @@ def jacobian_test_layer_W(X):
     plt.xlabel('epsilons')
     plt.ylabel('difference')
     plt.title('weights Jacobian Test Results')
-    plt.legend(("diff without grad", "diff with grad"))
+    plt.legend((f'|\N{LATIN SMALL LETTER F WITH HOOK}(x + εd) - \N{LATIN SMALL LETTER F WITH HOOK}(x)|', "|\N{LATIN SMALL LETTER F WITH HOOK}(x + εd) - \N{LATIN SMALL LETTER F WITH HOOK}(x) - εdᵀ∇f|"))
     plt.show()
 
 
-def jacobian_test_layer_b(X):
-    layer = Layer(2, 3)
+def jacobian_test_layer_b(X, iter_num=20):
+    """
+    Jacobian test for bias parameter
+    :param X: a matrix of size nxm, output of forward layer
+    :param iter_num: a number of iterations for the gradient test
+    :return: void
+    """
+    layer = Layer(2, 3, activation=functions.tanh)
     n, m = X.shape
     out_dimensions = layer.b.shape[0]
     U = normalize(np.random.rand(out_dimensions, m))
     original_b = layer.b.copy()
 
-    iter_num = 20
     diff = np.zeros(iter_num)
     diff_grad = np.zeros(iter_num)
     epsilons = [0.5 ** i for i in range(iter_num)]
@@ -101,7 +117,7 @@ def jacobian_test_layer_b(X):
     plt.xlabel('epsilons')
     plt.ylabel('difference')
     plt.title('bias Jacobian Test Results')
-    plt.legend(("diff without grad", "diff with grad"))
+    plt.legend((f'|\N{LATIN SMALL LETTER F WITH HOOK}(x + εd) - \N{LATIN SMALL LETTER F WITH HOOK}(x)|', "|\N{LATIN SMALL LETTER F WITH HOOK}(x + εd) - \N{LATIN SMALL LETTER F WITH HOOK}(x) - εdᵀ∇f|"))
     plt.show()
 
 
