@@ -89,5 +89,5 @@ if __name__ == '__main__':
     _, axis3 = plt.subplots(1, 1)
     for policy in policies:
         for l in num_of_layers:
-            train_network(GMM, num_layers=l, policy=policy, layers_arr=num_of_layers, epochs=100)
+            train_network(Peaks, num_layers=l, policy=policy, layers_arr=num_of_layers, epochs=100)
     plt.show()

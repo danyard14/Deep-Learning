@@ -13,9 +13,9 @@ def get_grad_Jac_test_params(batch_size=4):
     X = data["Yt"][:, chosen_indices]
     Y = data["Ct"][:, chosen_indices]
 
-    X2 = normalize(np.random.rand(*X.shape))
+    X_normalize = normalize(np.random.rand(*X.shape))
 
-    return X2, Y
+    return X_normalize, Y
 
 
 if __name__ == '__main__':
