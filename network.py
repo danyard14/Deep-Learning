@@ -45,7 +45,7 @@ class NeuralNetwork:
         prev_dx = None
         for layer in self.layers[::-1]:
             layer.backward(prev_dx)
-            prev_dx = layer.dX.copy()  # TODO: check if need copy
+            prev_dx = layer.dX.copy()
 
     def train_mode(self):
         for layer in self.layers:
