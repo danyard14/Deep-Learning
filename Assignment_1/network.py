@@ -1,5 +1,5 @@
-from layer import *
-from functions import *
+from Assignment_1.layer import *
+from Assignment_1.functions import *
 
 
 class NeuralNetwork:

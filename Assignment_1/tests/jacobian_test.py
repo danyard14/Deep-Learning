@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-import functions
-from layer import *
+from Assignment_1 import functions
+from Assignment_1.layer import *
 from test_utils import *
 
 

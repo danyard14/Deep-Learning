@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from test_utils import *
-from layer import *
+from Assignment_1.layer import *
 
 
 def grad_test_soft_max_X(X: np.array, Y: np.array, iter_num=20):

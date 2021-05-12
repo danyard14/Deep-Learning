@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import exp
-from functions import ReLU
+from Assignment_1.functions import ReLU
 
 
 class Layer:

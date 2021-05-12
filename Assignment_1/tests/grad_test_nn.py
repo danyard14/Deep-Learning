@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from test_utils import *
-from network import *
+from Assignment_1.network import *
 
 
 def grad_test_soft_max_weights_nn(X: np.array, Y: np.array, iter_num=20):

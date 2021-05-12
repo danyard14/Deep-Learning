@@ -1,4 +1,4 @@
-from network import NeuralNetwork
+from Assignment_1.network import NeuralNetwork
 
 
 class SGD:

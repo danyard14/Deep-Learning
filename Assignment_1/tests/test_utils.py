@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.io as sio
-from utils import normalize
+from Assignment_1.utils import normalize
 
 
 def get_grad_Jac_test_params(batch_size=4):

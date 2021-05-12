@@ -1,9 +1,9 @@
 import math
 import scipy.io as sio
 import matplotlib.pyplot as plt
-from network import *
-from optimizers import *
-from utils import get_acc
+from Assignment_1.network import *
+from Assignment_1.optimizers import *
+from Assignment_1.utils import get_acc
 
 
 def train_network(data_path: str, num_layers=1, batch_size: int = 32, lr: int = 0.001, epochs: int = 100, policy="increase", layers_arr=[]):
