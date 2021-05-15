@@ -12,18 +12,19 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 
 
-def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=10000):
+def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=1000):
     model = EncoderDecoder(1, hidden_state, 1)
     if (opt == "adam"):
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     else:
         optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
+    optimizer_name = 'adam' if 'adam' in str(optimizer).lower() else 'mse'
 
     mse = nn.MSELoss()
     min_loss = float("inf")
     min_in, min_out = None, None
     losses = []
-    for epoch in range(epochs):
+    for epoch in range(1, epochs):
         total_loss = 0
         for batch_idx, data in enumerate(train_loader):
             optimizer.zero_grad()
@@ -35,7 +36,7 @@ def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="ada
                 min_in, min_out = data, output
             loss.backward()
             if gradient_clipping:
-                nn.utils.clip_grad_norm(model.parameters(), max_norm=gradient_clipping)
+                nn.utils.clip_grad_norm_(model.parameters(), max_norm=gradient_clipping)
 
             optimizer.step()
 
@@ -44,16 +45,12 @@ def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="ada
         print(f'Train Epoch: {epoch} \t loss: {epoch_loss}')
 
         if epoch % 100 == 0:
-
-            optimizer_name = 'adam' if 'adam' in str(optimizer).lower() else 'mse'
-            path = f'ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}_epoch={epoch}_gradient_clipping={gradient_clipping}.pt'
-
+            path = f'saved_models\\ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}_epoch={epoch}_gradient_clipping={gradient_clipping}.pt'
 
             torch.save(model, path)
 
-
+    path = f'graphs\\ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}_epochs={epochs}_gradient_clipping={gradient_clipping}_'
     _, axis1 = plt.subplots(1, 1)
-    _, axis2 = plt.subplots(1, 1)
     axis1.plot(np.arange(0, 50, 1), min_in[0, :, :].detach().numpy())
     axis1.plot(np.arange(0, 50, 1), min_out[0, :, :].detach().numpy())
     axis1.set_xlabel("time")
@@ -61,7 +58,9 @@ def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="ada
     axis1.set_ylabel("signal value")
     axis1.legend(("original", "reconstructed"))
     axis1.set_title("time signal reconstruction Example 1 ")
+    plt.savefig(path + "example1.jpg")
 
+    _, axis2 = plt.subplots(1, 1)
     axis2.plot(np.arange(0, 50, 1), min_in[1, :, :].detach().numpy())
     axis2.plot(np.arange(0, 50, 1), min_out[1, :, :].detach().numpy())
     axis2.set_xlabel("time")
@@ -69,7 +68,7 @@ def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="ada
     axis2.set_ylabel("signal value")
     axis2.legend(("original", "reconstructed"))
     axis2.set_title("time signal reconstruction Example 2 ")
-    plt.show()
+    plt.savefig(path + "example2.jpg")
 
 
 def validate(model, device, test_loader):
@@ -119,7 +118,7 @@ if __name__ == '__main__':
         validate_test = torch.utils.data.DataLoader(X_test, **train_kwargs)
 
         lrs = [0.001, 0.005, 0.01]
-        gradient_clip = [0, 1, 2]
+        gradient_clip = [1, 2, 0]
         hidden_state_size = [5, 10, 20]
         for lr in lrs:
             for clip in gradient_clip:
