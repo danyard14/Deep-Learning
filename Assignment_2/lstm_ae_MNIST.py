@@ -6,7 +6,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 
-
 parser = argparse.ArgumentParser(description='PyTorch AE Training')
 parser.add_argument('--epochs', default=200, type=int, metavar='N', help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='manual epoch number (useful on restarts)')
@@ -17,10 +16,10 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M', help='mo
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W',
                     help='weight decay (default: 1e-4)')
 parser.add_argument('--dataset', default=10, type=int, help='modelnet 10 or 40')
-parser.add_argument('--opt',default="adam",type=str,help='choose optimizer')
+parser.add_argument('--opt', default="adam", type=str, help='choose optimizer')
 
 
-def train(args, model, device, train_loader , optimizer, epoch):
+def train(args, model, device, train_loader, optimizer, epoch):
     model.X_train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data, target
@@ -33,6 +32,7 @@ def train(args, model, device, train_loader , optimizer, epoch):
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                        100. * batch_idx / len(train_loader), loss.item()))
+
 
 def validate(model, device, test_loader):
     model.eval()
@@ -63,20 +63,23 @@ if __name__ == '__main__':
     train_kwargs = {'batch_size': args.batch_size}
     # test_kwargs = {'batch_size': args.test_batch_size}
     train_data = datasets.MNIST('../data', train=True, download=True,
-                              transform=transform)
+                                transform=transform)
     test_data = datasets.MNIST('../data', train=False,
-                              transform=transform)
+                               transform=transform)
     train_loader = torch.utils.data.DataLoader(train_data, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(test_data, **train_kwargs)
     model = EncoderDecoder()
 
-    if(args.opt == "adam"):
+    if (args.opt == "adam"):
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     else:
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        optimizer = torch.optim.RMSprop(model.parameters(), lr=0.001)
 
-
-    train()
-
-
+    lrs = []
+    gradient_clip = []
+    hidden_state_size = []
+    for lr in lrs:
+        for clip in gradient_clip:
+            for hidden_state in hidden_state_size:
+                train(args, model, device, train_loader, optimizer, epoch)

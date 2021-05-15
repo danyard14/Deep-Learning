@@ -20,8 +20,8 @@ class EncoderDecoder(nn.Module):
         """
         seq_size = x.shape[1]
         output, (h_n, c_n) = self.encoder.forward(x)
-        batch_z = torch.cat([h_n] * seq_size, axis=0)
-        output, _ = self.decoder.forward(batch_z)
+        input_z = torch.cat([h_n] * seq_size, axis=0)   # duplicate z T times so it can be used as input for decoder
+        output, _ = self.decoder.forward(input_z)
         output = self.linear(output)
         output = output.view((output.shape[1], output.shape[0], -1))
 

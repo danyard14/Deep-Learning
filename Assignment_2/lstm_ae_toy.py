@@ -1,5 +1,7 @@
 import random
 
+import numpy as np
+
 from model import EncoderDecoder
 import argparse
 import torch
@@ -7,41 +9,67 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
-
-parser = argparse.ArgumentParser(description='PyTorch AE Training')
-parser.add_argument('--epochs', default=200, type=int, metavar='N', help='number of total epochs to run')
-parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch_size', default=128, type=int, metavar='N',
-                    help='mini-batch size (default: 128),only used for train')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float, metavar='LR', help='initial learning rate')
-parser.add_argument('--momentum', default=0.9, type=float, metavar='M', help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float, metavar='W',
-                    help='weight decay (default: 1e-4)')
-parser.add_argument('--dataset', default=10, type=int, help='modelnet 10 or 40')
-parser.add_argument('--opt', default="adam", type=str, help='choose optimizer')
-parser.add_argument('--hidden_size', default=64, type=int, help="")
+import matplotlib.pyplot as plt
 
 
-def train(args, model, train_loader, optimizer, gradient_clipping=True):
-    # model.X_train()
+def train(train_loader, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=10000):
+    model = EncoderDecoder(1, hidden_state, 1)
+    if (opt == "adam"):
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    else:
+        optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
+
     mse = nn.MSELoss()
+    min_loss = float("inf")
+    min_in, min_out = None, None
     losses = []
-    for epoch in range(args.epochs):
+    for epoch in range(epochs):
         total_loss = 0
         for batch_idx, data in enumerate(train_loader):
             optimizer.zero_grad()
             output = model(data)
             loss = mse(output, data)
             total_loss += loss.item()
+            if loss.item() < min_loss:
+                min_loss = loss.item()
+                min_in, min_out = data, output
             loss.backward()
             if gradient_clipping:
-                nn.utils.clip_grad_norm(model.parameters(), max_norm=1)
+                nn.utils.clip_grad_norm(model.parameters(), max_norm=gradient_clipping)
 
             optimizer.step()
 
         epoch_loss = total_loss / len(train_loader)
         losses.append(epoch_loss)
         print(f'Train Epoch: {epoch} \t loss: {epoch_loss}')
+
+        if epoch % 100 == 0:
+
+            optimizer_name = 'adam' if 'adam' in str(optimizer).lower() else 'mse'
+            path = f'ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}_epoch={epoch}_gradient_clipping={gradient_clipping}.pt'
+
+
+            torch.save(model, path)
+
+
+    _, axis1 = plt.subplots(1, 1)
+    _, axis2 = plt.subplots(1, 1)
+    axis1.plot(np.arange(0, 50, 1), min_in[0, :, :].detach().numpy())
+    axis1.plot(np.arange(0, 50, 1), min_out[0, :, :].detach().numpy())
+    axis1.set_xlabel("time")
+    # axis1[1].set_xlabel("time")
+    axis1.set_ylabel("signal value")
+    axis1.legend(("original", "reconstructed"))
+    axis1.set_title("time signal reconstruction Example 1 ")
+
+    axis2.plot(np.arange(0, 50, 1), min_in[1, :, :].detach().numpy())
+    axis2.plot(np.arange(0, 50, 1), min_out[1, :, :].detach().numpy())
+    axis2.set_xlabel("time")
+    # axis1[1].set_xlabel("time")
+    axis2.set_ylabel("signal value")
+    axis2.legend(("original", "reconstructed"))
+    axis2.set_title("time signal reconstruction Example 2 ")
+    plt.show()
 
 
 def validate(model, device, test_loader):
@@ -63,7 +91,7 @@ def validate(model, device, test_loader):
         100. * correct / len(test_loader.dataset)))
 
 
-def generate_toy_data(to_int=True):
+def generate_toy_data(to_int=False):
     random.seed(0)
     if to_int:
         data = torch.randint(0, 10, (10000, 50, 1)).float()
@@ -77,21 +105,24 @@ def generate_toy_data(to_int=True):
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
     X_train, X_validate, X_test = generate_toy_data()
     transform = transforms.Compose([
         transforms.Normalize((0.5,), (0.3081,))
     ])
-    train_kwargs = {'batch_size': args.batch_size}
-    train_loader = torch.utils.data.DataLoader(X_train, **train_kwargs)
-    validate_loader = torch.utils.data.DataLoader(X_validate, **train_kwargs)
-    validate_test = torch.utils.data.DataLoader(X_test, **train_kwargs)
-    model = EncoderDecoder(1, args.hidden_size, 1)
+    batch_sizes = [32, 64, 128]
 
-    if (args.opt == "adam"):
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    for batch_size in batch_sizes:
 
-    else:
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        train_kwargs = {'batch_size': batch_size}
+        train_loader = torch.utils.data.DataLoader(X_train, **train_kwargs)
+        validate_loader = torch.utils.data.DataLoader(X_validate, **train_kwargs)
+        validate_test = torch.utils.data.DataLoader(X_test, **train_kwargs)
 
-    train(args, model, train_loader, optimizer)
+        lrs = [0.001, 0.005, 0.01]
+        gradient_clip = [0, 1, 2]
+        hidden_state_size = [5, 10, 20]
+        for lr in lrs:
+            for clip in gradient_clip:
+                for hidden_state in hidden_state_size:
+                    train(train_loader, gradient_clipping=clip, hidden_state=hidden_state,
+                          lr=lr)
