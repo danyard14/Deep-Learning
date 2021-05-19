@@ -1,4 +1,3 @@
-import os.path
 import random
 
 import numpy as np
@@ -18,9 +17,9 @@ def create_folders(path):
     Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=200,
+def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state_size=10, lr=0.001, opt="adam", epochs=1000,
           batch_size=32):
-    model = EncoderDecoder(1, hidden_state, 1, 50).to(device)
+    model = EncoderDecoder(1, hidden_state_size, 1, 50).to(device)
     validate_data = validate_data.to(device)
     if (opt == "adam"):
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -33,7 +32,7 @@ def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state
     best_loss_global = float("inf")
     min_in, min_out = None, None
     validation_losses = []
-    for epoch in range(1, epochs):
+    for epoch in range(0, epochs):
         total_loss = 0
         for batch_idx, data in enumerate(train_loader):
             data = data.to(device)
@@ -54,56 +53,60 @@ def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state
         best_loss_global = min(best_loss_global, epoch_loss)
         print(f'Train Epoch: {epoch} \t loss: {epoch_loss}')
 
-        if epoch % 50 == 0:
-            file_name = f'ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state}_' \
-                        f'_gradient_clipping={gradient_clipping}_'
-            path = os.path.join("saved_models", "toy_task", file_name)
+        if epoch % 100 == 0:
+            path = f'{results_path}saved_models/ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}_' \
+                   f'_gradient_clipping={gradient_clipping}_'
             create_folders(path)
-            torch.save(model, os.path.join(path, f'epoch={epoch}_bestloss={best_loss_global}.pt'))
-        if epoch % 10 == 0:
+            torch.save(model, path + f"/epoch={epoch}_bestloss={best_loss_global}.pt")
+
             # run validation        if epoch % 20 == 0:
             model.eval()
             mse.eval()
             output = model(validate_data)
             loss = mse(output, validate_data)  # print("Accuracy: {:.4f}".format(acc))
-            print(f"validation loss = {loss}")
             validation_losses.append(loss.item())
             mse.train()
             model.train()
 
-    plot_validation_loss(epochs, gradient_clipping, lr, optimizer_name, validation_losses, batch_size, hidden_state)
+    plot_sequence_examples(epochs, gradient_clipping, lr, min_in, min_out, optimizer_name, batch_size)
+
+    plot_validation_loss(epochs, gradient_clipping, lr, optimizer_name, validation_losses, batch_size)
 
 
-def plot_validation_loss(epochs, gradient_clipping, lr, optimizer_name, validation_losses, batch_size, hidden_state):
-    file_name = f'ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state}_epochs={epochs}' \
-                f'_gradient_clipping={gradient_clipping}_batch_size={batch_size}_'
-    path = os.path.join("graphs", "toy_task", "validation", file_name)
+def plot_validation_loss(epochs, gradient_clipping, lr, optimizer_name, validation_losses, batch_size):
+    path = f'{results_path}graphs/validation/ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}_epochs={epochs}' \
+           f'_gradient_clipping={gradient_clipping}_batch_size={batch_size}_'
+    create_folders(path)
     _, axis1 = plt.subplots(1, 1)
     axis1.plot(np.arange(1, len(validation_losses) + 1, 1), validation_losses)
     axis1.set_xlabel("epochs X 50")
     axis1.set_ylabel("validation loss")
     axis1.set_title("validation loss")
-    plt.savefig(path + "loss.jpg")
+    plt.savefig(path + "/loss.jpg")
 
 
-def plot_sequence_examples(original_xs, reconstructed_xs, path):
-    save_path = os.path.join("graphs", "toy_task", "sequence_examples", path)
+def plot_sequence_examples(epochs, gradient_clipping, lr, min_in, min_out, optimizer_name, batch_size):
+    path = f'{results_path}graphs/sequence_examples/ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state_size}' \
+           f'_epochs={epochs}_gradient_clipping={gradient_clipping}_batch_size={batch_size}_'
+    create_folders(path)
     _, axis1 = plt.subplots(1, 1)
-    axis1.plot(np.arange(0, 50, 1), original_xs[0, :, :].detach().cpu().numpy())
-    axis1.plot(np.arange(0, 50, 1), reconstructed_xs[0, :, :].detach().cpu().numpy())
+    axis1.plot(np.arange(0, 50, 1), min_in[0, :, :].detach().cpu().numpy())
+    axis1.plot(np.arange(0, 50, 1), min_out[0, :, :].detach().cpu().numpy())
     axis1.set_xlabel("time")
+    # axis1[1].set_xlabel("time")
     axis1.set_ylabel("signal value")
     axis1.legend(("original", "reconstructed"))
     axis1.set_title("time signal reconstruction Example 1 ")
-    plt.savefig(save_path + "example1.jpg")
+    plt.savefig(path + "/example1.jpg")
     _, axis2 = plt.subplots(1, 1)
-    axis2.plot(np.arange(0, 50, 1), original_xs[1, :, :].detach().cpu().numpy())
-    axis2.plot(np.arange(0, 50, 1), reconstructed_xs[1, :, :].detach().cpu().numpy())
+    axis2.plot(np.arange(0, 50, 1), min_in[1, :, :].detach().cpu().numpy())
+    axis2.plot(np.arange(0, 50, 1), min_out[1, :, :].detach().cpu().numpy())
     axis2.set_xlabel("time")
+    # axis1[1].set_xlabel("time")
     axis2.set_ylabel("signal value")
     axis2.legend(("original", "reconstructed"))
     axis2.set_title("time signal reconstruction Example 2 ")
-    plt.savefig(save_path + "example2.jpg")
+    plt.savefig(path + "/example2.jpg")
 
 
 def validate(model, device, test_loader):
@@ -140,9 +143,13 @@ def generate_toy_data(n_sequences=10000, T=50, to_int=False):
 
 
 if __name__ == '__main__':
+    results_path = "/home/mosesofe/results/pdl_Ass2/"
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     X_train, X_validate, X_test = generate_toy_data()
-    batch_sizes = [40]
+    transform = transforms.Compose([
+        transforms.Normalize((0.5,), (0.3081,))
+    ])
+    batch_sizes = [40, 80, 10, 5]
 
     for batch_size in batch_sizes:
 
@@ -151,30 +158,11 @@ if __name__ == '__main__':
         validate_loader = torch.utils.data.DataLoader(X_validate, **train_kwargs)
         validate_test = torch.utils.data.DataLoader(X_test, **train_kwargs)
 
-        lrs = [0.001, 0.01]
-        gradient_clip = [1, 0]
-        hidden_state_sizes = [120, 60, 30]
+        lrs = [0.01, 0.001, 0.005]
+        gradient_clip = [0, 1, 2]
+        hidden_state_sizes = [120, 60, 30, 10]
         for lr in lrs:
             for clip in gradient_clip:
-                for hidden_state in hidden_state_sizes:
-                    train(train_loader, X_validate, device, gradient_clipping=clip, hidden_state=hidden_state,
+                for hidden_state_size in hidden_state_sizes:
+                    train(train_loader, X_validate, device, gradient_clipping=clip, hidden_state_size=hidden_state_size,
                           lr=lr, batch_size=batch_size)
-
-    """
-    after grid search, best params are:
-    lr = 
-    gradient clipping = 
-    hidden state size = 
-    
-    running model on test:
-    """
-    model_path = ""
-    model = torch.load("model name string")
-    # model = EncoderDecoder(1, 54, 1, 50)
-    mse = nn.MSELoss()
-    mse.eval()
-    model.eval()
-    test_output = model(X_test)
-    test_loss = mse(test_output)
-    print(f"test loss = {test_loss}")
-    plot_sequence_examples(X_test, test_output, model_path)
