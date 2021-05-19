@@ -18,7 +18,7 @@ def create_folders(path):
     Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=200,
+def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=300,
           batch_size=32):
     model = EncoderDecoder(1, hidden_state, 1, 50).to(device)
     validate_data = validate_data.to(device)
@@ -56,22 +56,25 @@ def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state
 
         if epoch % 50 == 0:
             file_name = f'ae_toy_{optimizer_name}_lr={lr}_hidden_size={hidden_state}_' \
-                        f'_gradient_clipping={gradient_clipping}_'
+                        f'_gradient_clipping={gradient_clipping}'
             path = os.path.join("saved_models", "toy_task", file_name)
             create_folders(path)
             torch.save(model, os.path.join(path, f'epoch={epoch}_bestloss={best_loss_global}.pt'))
         if epoch % 10 == 0:
-            # run validation        if epoch % 20 == 0:
-            model.eval()
-            mse.eval()
-            output = model(validate_data)
-            loss = mse(output, validate_data)  # print("Accuracy: {:.4f}".format(acc))
-            print(f"validation loss = {loss}")
-            validation_losses.append(loss.item())
-            mse.train()
-            model.train()
+            validation(model, mse, validate_data, validation_losses)
 
     plot_validation_loss(epochs, gradient_clipping, lr, optimizer_name, validation_losses, batch_size, hidden_state)
+
+
+def validation(model, mse, validate_data, validation_losses):
+    model.eval()
+    mse.eval()
+    output = model(validate_data)
+    loss = mse(output, validate_data)  # print("Accuracy: {:.4f}".format(acc))
+    print(f"validation loss = {loss}")
+    validation_losses.append(loss.item())
+    mse.train()
+    model.train()
 
 
 def plot_validation_loss(epochs, gradient_clipping, lr, optimizer_name, validation_losses, batch_size, hidden_state):
@@ -104,25 +107,6 @@ def plot_sequence_examples(original_xs, reconstructed_xs, path):
     axis2.legend(("original", "reconstructed"))
     axis2.set_title("time signal reconstruction Example 2 ")
     plt.savefig(save_path + "example2.jpg")
-
-
-def validate(model, device, test_loader):
-    # model.eval()
-    test_loss = 0
-    correct = 0
-    with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
-            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-            correct += pred.eq(target.view_as(pred)).sum().item()
-
-    test_loss /= len(test_loader.dataset)
-
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
 
 
 def generate_toy_data(n_sequences=10000, T=50, to_int=False):
@@ -168,13 +152,13 @@ if __name__ == '__main__':
     
     running model on test:
     """
-    model_path = ""
-    model = torch.load("model name string")
-    # model = EncoderDecoder(1, 54, 1, 50)
-    mse = nn.MSELoss()
-    mse.eval()
-    model.eval()
-    test_output = model(X_test)
-    test_loss = mse(test_output)
-    print(f"test loss = {test_loss}")
-    plot_sequence_examples(X_test, test_output, model_path)
+    # model_path = ""
+    # model = torch.load("model name string")
+    # # model = EncoderDecoder(1, 54, 1, 50)
+    # mse = nn.MSELoss()
+    # mse.eval()
+    # model.eval()
+    # test_output = model(X_test)
+    # test_loss = mse(test_output)
+    # print(f"test loss = {test_loss}")
+    # plot_sequence_examples(X_test, test_output, model_path)
