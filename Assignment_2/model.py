@@ -12,8 +12,7 @@ class EncoderDecoder(nn.Module):
         self.classify = classify
         self.encoder = nn.LSTM(self.input_size, self.hidden_size, batch_first=True)
         self.decoder = nn.LSTM(self.hidden_size, self.hidden_size, batch_first=True)
-        self.linear = nn.Linear(self.hidden_size, output_size) if not classify \
-            else nn.Linear(self.hidden_size * T, output_size)   # TODO: check if multiply by T is correct
+        self.linear = nn.Linear(self.hidden_size, output_size)
 
     def forward(self, x):
         """
@@ -26,8 +25,8 @@ class EncoderDecoder(nn.Module):
         expand_z = z.repeat(1, x.shape[1]).view(output.shape)
         decoder_output, _ = self.decoder.forward(expand_z)
         if self.classify:
-            net_output = decoder_output.view(decoder_output.shape[1], -1)
-            return self.linear(net_output)
+            decoder_z = decoder_output[:, -1]
+            return self.linear(decoder_z)
 
         net_output = self.linear(decoder_output)
         return net_output

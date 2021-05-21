@@ -18,7 +18,7 @@ def create_folders(path):
     Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=300,
+def train(train_loader, validate_data, device, gradient_clipping=1, hidden_state=10, lr=0.001, opt="adam", epochs=600,
           batch_size=32):
     model = EncoderDecoder(1, hidden_state, 1, 50).to(device)
     validate_data = validate_data.to(device)
@@ -128,21 +128,21 @@ if __name__ == '__main__':
     X_train, X_validate, X_test = generate_toy_data()
     batch_sizes = [40]
 
-    for batch_size in batch_sizes:
-
-        train_kwargs = {'batch_size': batch_size}
-        train_loader = torch.utils.data.DataLoader(X_train, **train_kwargs)
-        validate_loader = torch.utils.data.DataLoader(X_validate, **train_kwargs)
-        validate_test = torch.utils.data.DataLoader(X_test, **train_kwargs)
-
-        lrs = [0.001, 0.01]
-        gradient_clip = [1, 0]
-        hidden_state_sizes = [120, 60, 30]
-        for lr in lrs:
-            for clip in gradient_clip:
-                for hidden_state in hidden_state_sizes:
-                    train(train_loader, X_validate, device, gradient_clipping=clip, hidden_state=hidden_state,
-                          lr=lr, batch_size=batch_size)
+    # for batch_size in batch_sizes:
+    #
+    #     train_kwargs = {'batch_size': batch_size}
+    #     train_loader = torch.utils.data.DataLoader(X_train, **train_kwargs, shuffle=True)
+    #     validate_loader = torch.utils.data.DataLoader(X_validate, **train_kwargs, shuffle=True)
+    #     validate_test = torch.utils.data.DataLoader(X_test, **train_kwargs, shuffle=True)
+    #
+    #     lrs = [0.001, 0.01]
+    #     gradient_clip = [1, 0]
+    #     hidden_state_sizes = [120, 60, 30]
+    #     for lr in lrs:
+    #         for clip in gradient_clip:
+    #             for hidden_state in hidden_state_sizes:
+    #                 train(train_loader, X_validate, device, gradient_clipping=clip, hidden_state=hidden_state,
+    #                       lr=lr, batch_size=batch_size)
 
     """
     after grid search, best params are:
@@ -152,13 +152,16 @@ if __name__ == '__main__':
     
     running model on test:
     """
-    # model_path = ""
-    # model = torch.load("model name string")
+
+    file_name = "ae_toy_adam_lr=0.001_hidden_size=60__gradient_clipping=1"
+    model_path = r"C:\Users\t-ofermoses\PycharmProjects\pdl\Assignment_2\saved_models\toy_task\ae_toy_adam_lr=0.001_hidden_size=60__gradient_clipping=1\epoch=550_bestloss=0.0018718887446448208.pt"
+    model = torch.load(model_path)
     # # model = EncoderDecoder(1, 54, 1, 50)
-    # mse = nn.MSELoss()
-    # mse.eval()
-    # model.eval()
-    # test_output = model(X_test)
-    # test_loss = mse(test_output)
-    # print(f"test loss = {test_loss}")
-    # plot_sequence_examples(X_test, test_output, model_path)
+    mse = nn.MSELoss()
+    mse.eval()
+    model.eval()
+    X_test = X_test.to(device)
+    test_output = model(X_test)
+    test_loss = mse(test_output, X_test)
+    print(f"test loss = {test_loss}")
+    plot_sequence_examples(X_test, test_output, file_name)
