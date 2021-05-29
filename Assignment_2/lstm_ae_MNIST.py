@@ -27,7 +27,7 @@ def train(train_loader, test_loader, gradient_clipping=1, hidden_state_size=10, 
           epochs=100,
           classify=True):
     model = EncoderDecoder(input_size=28, hidden_size=hidden_state_size, output_size=28, labels_num=10) if not classify \
-        else EncoderDecoder(input_size=28, hidden_size=hidden_state_size, output_size=28, classify=True, labels_num=10)
+        else EncoderDecoder(input_size=28, hidden_size=hidden_state_size, output_size=28, is_prediction=True, labels_num=10)
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     loss_name = "mse"
