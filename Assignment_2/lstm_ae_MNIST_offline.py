@@ -1,13 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from torchvision.transforms import Lambda
-
-from model import EncoderDecoder
-import argparse
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from torchvision import datasets, transforms
 from model import EncoderDecoder
 import os.path
@@ -64,7 +58,7 @@ def train(train_loader, test_loader, gradient_clipping=1, hidden_state_size=10, 
 
         if epoch % 5 == 0 or validation_loss < min_loss:
             file_name = f"ae_toy_{loss_name}_lr={lr}_hidden_size={hidden_state_size}_epoch={epoch}_gradient_clipping={gradient_clipping}.pt"
-            path = os.path.join(results_path,"saved_models", "MNIST_task", task_name, file_name)
+            path = os.path.join(results_path, "saved_models", "MNIST_task", task_name, file_name)
             torch.save(model, path)
 
         min_loss = min(validation_loss, min_loss)
@@ -130,26 +124,6 @@ def plot_validation_acc(epochs, gradient_clipping, lr, optimizer_name, validatio
     plt.savefig(path + "acc.jpg")
 
 
-# def validate_classification(model, loss_layer, test_loader, validation_losses, device, classification):  # TODO: delete
-#     validation()
-#     model.eval()
-#     test_loss = 0
-#     correct = 0
-#     with torch.no_grad():
-#         for data, target in test_loader:
-#             data, target = data.to(device), target.to(device)
-#             output = model(data)
-#             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
-#             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-#             correct += pred.eq(target.view_as(pred)).sum().item()
-#
-#     test_loss /= len(test_loader.dataset)
-#
-#     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-#         test_loss, correct, len(test_loader.dataset),
-#         100. * correct / len(test_loader.dataset)))
-
-
 if __name__ == '__main__':
     results_path = os.path.join("/home", "mosesofe", "results", "pdl_Ass2")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -157,7 +131,6 @@ if __name__ == '__main__':
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.3081,))
-        # TODO: check if this transform meets demands of scale (0,1) and mean=0.5
     ])
     train_data = datasets.MNIST('../data', train=True, download=True,
                                 transform=transform)

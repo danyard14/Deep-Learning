@@ -1,15 +1,7 @@
-from itertools import islice
-
 import numpy as np
 from matplotlib import pyplot as plt
-from torchvision.transforms import Lambda
-from torchvision.utils import make_grid
-from model import EncoderDecoder
-import argparse
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from torchvision import datasets, transforms
 from model import EncoderDecoder
 import os.path
@@ -23,11 +15,12 @@ def init_writer(results_path, lr, classify, hidden_size, epochs):
     return writer
 
 
-def train(train_loader, test_loader, gradient_clipping=1, hidden_state_size=10, lr=0.001, opt="adam",
+def train(train_loader, test_loader, gradient_clipping=1, hidden_state_size=10, lr=0.001,
           epochs=100,
           classify=True):
     model = EncoderDecoder(input_size=28, hidden_size=hidden_state_size, output_size=28, labels_num=10) if not classify \
-        else EncoderDecoder(input_size=28, hidden_size=hidden_state_size, output_size=28, is_prediction=True, labels_num=10)
+        else EncoderDecoder(input_size=28, hidden_size=hidden_state_size, output_size=28, is_prediction=True,
+                            labels_num=10)
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     loss_name = "mse"
@@ -128,36 +121,14 @@ def plot_validation_acc(epochs, gradient_clipping, lr, optimizer_name, validatio
                 f'_gradient_clipping={gradient_clipping}'
     path = os.path.join("graphs", "MNIST_task", task_name, file_name)
     _, axis1 = plt.subplots(1, 1)
-    axis1.plot(np.arange(1, len(validation_accs) + 1, 1), validation_accs)
+    axis1.plot(np.arange(0, len(validation_accs) + 1, 1), [0] + validation_accs)
     axis1.set_xlabel("epochs")
     axis1.set_ylabel("accuracy")
     axis1.set_title("validation accuracy")
     plt.savefig(path + "acc.jpg")
 
 
-# def validate_classification(model, loss_layer, test_loader, validation_losses, device, classification):  # TODO: delete
-#     validation()
-#     model.eval()
-#     test_loss = 0
-#     correct = 0
-#     with torch.no_grad():
-#         for data, target in test_loader:
-#             data, target = data.to(device), target.to(device)
-#             output = model(data)
-#             test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
-#             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-#             correct += pred.eq(target.view_as(pred)).sum().item()
-#
-#     test_loss /= len(test_loader.dataset)
-#
-#     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-#         test_loss, correct, len(test_loader.dataset),
-#         100. * correct / len(test_loader.dataset)))
-
 def plot_reconstructed_x(data, reconsturct):
-    # im = torchvision.utils.make_grid(batch)
-    # plt.title(title)
-    # plt.imshow(np.transpose(data.numpy(), (1, 2, 0)))
     path = os.path.join(results_path, "graphs", "MNIST_task", "reconstruct")
     plt.title("original image")
     plt.imshow(data)
@@ -175,34 +146,32 @@ if __name__ == '__main__':
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.3081,))
-        # TODO: check if this transform meets demands of scale (0,1) and mean=0.5
     ])
     train_data = datasets.MNIST('../data', train=True, download=True,
                                 transform=transform)
     test_data = datasets.MNIST('../data', train=False,
                                transform=transform)
-    # train_loader = torch.utils.data.DataLoader(train_data, batch_size=20, shuffle=True)
-    # test_loader = torch.utils.data.DataLoader(test_data, batch_size=20, shuffle=True)
+
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=20, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=20, shuffle=True)
-    #
-    #     hidden_state_sizes = [64]
-    #     lrs = [0.001]
-    #     gradient_clip = [1, 0]
-    #     for lr in lrs:
-    #         for clip in gradient_clip:
-    #             for hidden_state_size in hidden_state_sizes:
-    #                 train(train_loader, test_loader, gradient_clipping=clip, hidden_state_size=hidden_state_size, lr=lr,
-    #                       opt="adam")
 
-    # use best model to plot original vs reconstructed digit images
-    model = torch.load(
-        r"saved_models\MNIST_task\classify\ae_toy_mse_lr=0.001_hidden_size=64_epoch=95_gradient_clipping=1.pt")
-    with torch.no_grad():
-        for data, labels in test_loader:
-            data_sequential = data.view(data.shape[0], 28, 28).to(device)
-            reconstruct, _ = model(data_sequential)
-            plot_reconstructed_x(data_sequential[0, :, :].cpu().numpy(), reconstruct[0, :, :].cpu().numpy())
-            plot_reconstructed_x(data_sequential[1, :, :].cpu().numpy(), reconstruct[1, :, :].cpu().numpy())
-            plot_reconstructed_x(data_sequential[2, :, :].cpu().numpy(), reconstruct[2, :, :].cpu().numpy())
-            break
+    hidden_state_sizes = [64]
+    lrs = [0.001]
+    gradient_clip = [1]
+    for lr in lrs:
+        for clip in gradient_clip:
+            for hidden_state_size in hidden_state_sizes:
+                train(train_loader, test_loader, gradient_clipping=clip, hidden_state_size=hidden_state_size, lr=lr,
+                      opt="adam")
+
+    # # use best model to plot original vs reconstructed digit images
+    # model = torch.load(
+    #     r"saved_models\MNIST_task\classify\ae_toy_mse_lr=0.001_hidden_size=64_epoch=95_gradient_clipping=1.pt")
+    # with torch.no_grad():
+    #     for data, labels in test_loader:
+    #         data_sequential = data.view(data.shape[0], 28, 28).to(device)
+    #         reconstruct, _ = model(data_sequential)
+    #         plot_reconstructed_x(data_sequential[0, :, :].cpu().numpy(), reconstruct[0, :, :].cpu().numpy())
+    #         plot_reconstructed_x(data_sequential[1, :, :].cpu().numpy(), reconstruct[1, :, :].cpu().numpy())
+    #         plot_reconstructed_x(data_sequential[2, :, :].cpu().numpy(), reconstruct[2, :, :].cpu().numpy())
+    #         break

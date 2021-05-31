@@ -22,7 +22,6 @@ def init_writer(lr, classify, hidden_size, epochs, task_name):
     return writer
 
 
-# TODO: remove opt from params (in all scripts)
 def train(train_loader, test_loader, gradient_clipping=1, hidden_state_size=10, lr=0.001,
           epochs=3000, is_prediction=False):
     model = EncoderDecoder(input_size=1, hidden_size=hidden_state_size, output_size=1,
@@ -144,7 +143,6 @@ def plot_amazon_google_high_stocks(stocks_df):
     stocks_df["date"] = pd.to_datetime(stocks_df.date)
 
     amazon_stocks = stocks_data[stocks_data['symbol'] == 'AMZN'][["date", "high"]]
-    # dates = [pd.datetime.datetime.strptime(d, "%m/%d/%Y").date() for d in amazon_stocks['dates'].values]
 
     google_stocks = stocks_data[stocks_data['symbol'] == 'GOOGL'][["date", "high"]]
 
@@ -159,10 +157,9 @@ def plot_amazon_google_high_stocks(stocks_df):
     return google_stocks['date']
 
 
-def plot_reconstructed_x(data, reconsturct, i, dates,stock_names):
+def plot_reconstructed_x(data, reconsturct, i, dates, stock_names):
     _, axis = plt.subplots(1, 1)
     _, T = data.shape
-    times = np.arange(1, T + 1, 1)
     axis.plot(dates[:-1], data[i, :])
     axis.plot(dates[:-1], reconsturct[i, :])
     plt.xticks(rotation=30)
@@ -170,8 +167,10 @@ def plot_reconstructed_x(data, reconsturct, i, dates,stock_names):
     axis.legend(("original", "reconstructed"))
     axis.set_xlabel("Time")
     axis.set_ylabel("Max Stock Value")
-    file_name = f'ae_snp_sequence_reconstructed_plots_{i + 1}.jpg'
-    path = os.path.join(results_path, "graphs", "s&p500_task", "recontructed_examples", file_name)
+    file_name = f'ae_snp_sequence_reconstructed_plots_{i + 1}'
+    path = os.path.join(results_path, "graphs", "s&p500_task", "classify_model", file_name)
+    create_folders(path)
+
     plt.savefig(path)
 
 
@@ -183,7 +182,6 @@ if __name__ == '__main__':
 
     stocks_data = pd.read_csv(os.path.join('..', 'data', 'SP 500 Stock Prices 2014-2017.csv'))
     dates = plot_amazon_google_high_stocks(stocks_data)
-    # TODO: implement and call plot high stocks of google&amazon
     high_stocks = stocks_data["high"].values
     stock_names = stocks_data['symbol'].unique()
     stock_sequences = np.zeros((len(stock_names) - 28, 1007))
@@ -199,8 +197,7 @@ if __name__ == '__main__':
     normalizer_train = Normalizer()
     normalizer_validation = Normalizer()
     normalizer_test = Normalizer()
-    # np.random.seed(0)
-    # np.random.shuffle(stock_sequences)
+
     num_of_stocks = stock_sequences.shape[0]
     normalized_train = normalizer_train.normalize(stock_sequences[:int(num_of_stocks * 0.6), :])
     normalized_validation = normalizer_validation.normalize(
@@ -231,37 +228,36 @@ if __name__ == '__main__':
     validation_loader = torch.utils.data.DataLoader(validation_data, shuffle=True, batch_size=4)
     test_loader = torch.utils.data.DataLoader(test_data, shuffle=False, batch_size=len(test_stock_names))
 
-    # hidden_state_sizes = [130, 180, 240, 300]
-    hidden_state_sizes = [130]
 
-    # lrs = [0.001]
-    # gradient_clip = [1]
-    # for lr in lrs:
-    #     for clip in gradient_clip:
-    #         for hidden_state_size in hidden_state_sizes:
-    #             train(train_loader, validation_loader, gradient_clipping=clip, hidden_state_size=hidden_state_size,
-    #                   lr=lr, is_prediction=False)
+    # Grid search
+    hidden_state_sizes = [130, 180, 240, 300]
+    lrs = [0.001]
+    gradient_clip = [1]
+    for lr in lrs:
+        for clip in gradient_clip:
+            for hidden_state_size in hidden_state_sizes:
+                train(train_loader, validation_loader, gradient_clipping=clip, hidden_state_size=hidden_state_size,
+                      lr=lr, is_prediction=False)
 
-    # # use best model to plot original vs reconstructed digit images
-    # model = torch.load(
-    #     r"C:\Users\t-ofermoses\PycharmProjects\pdl\Assignment_2\saved_models\s&p500_task\reconstruct\best\ae_s&p500_mse_lr=0.001_hidden_size=130_epoch=2990_gradient_clipping=1.pt")
+    # use best model to plot original vs reconstructed digit images
     model = torch.load(
-        r"C:\Users\t-ofermoses\PycharmProjects\pdl\Assignment_2\saved_models\s&p500_task\classify\best\ae_s&p500_mse_lr=0.001_hidden_size=120_epoch=2995_gradient_clipping=1.pt")
+        r"C:\Users\t-ofermoses\PycharmProjects\pdl\Assignment_2\saved_models\s&p500_task\reconstruct\best\ae_s&p500_mse_lr=0.001_hidden_size=130_epoch=2990_gradient_clipping=1.pt")
 
     model = model.to(device)
     with torch.no_grad():
         for data, targets in test_loader:
             data_sequential = (data.view(data.shape[0], data.shape[1], 1)).to(device)
-            reconstruct,preds = model(data_sequential)
+            reconstruct, preds = model(data_sequential)
             # reconstruct = reconstruct.cpu().numpy().reshape(
             #     (data_sequential.shape[0], data_sequential.shape[1]))
             preds = preds.cpu().numpy().reshape(
                 (targets.shape[0], targets.shape[1]))
             # denormalized_Xs = normalizer_test.undo_normalize(
             #     data_sequential.cpu().numpy().reshape((data_sequential.shape[0], data_sequential.shape[1])))
-            denorm_targets = normalizer_test.undo_normalize(targets.cpu().numpy().reshape(targets.shape[0],targets.shape[1]))
+            denorm_targets = normalizer_test.undo_normalize(
+                targets.cpu().numpy().reshape(targets.shape[0], targets.shape[1]))
             # denormalized_reconstructed_Xs = normalizer_test.undo_normalize(reconstruct)
             denorm_preds = normalizer_test.undo_normalize(preds)
-            for i in range(len(test_stock_names)//3):
+            for i in range(len(test_stock_names) // 3):
                 plot_reconstructed_x(denorm_preds, denorm_targets, i, dates, test_stock_names)
             break
